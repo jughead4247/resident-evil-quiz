@@ -256,17 +256,28 @@ const questions = [
 
 
 let currentQuestion = 0;
-let score = 0;
 
+// Stores the selected answer index for every question.
+// null = unanswered
+let selectedAnswers = new Array(questions.length).fill(null);
+
+
+// ===============================
+// ELEMENTS
+// ===============================
 
 const startScreen = document.getElementById("start-screen");
 const quizScreen = document.getElementById("quiz-screen");
 const resultScreen = document.getElementById("result-screen");
+const homeInfo = document.getElementById("home-info");
 
 const startButton = document.getElementById("start-btn");
 const restartButton = document.getElementById("restart-btn");
 const shareButton = document.getElementById("share-btn");
 const challengeButton = document.getElementById("challenge-btn");
+
+const backButton = document.getElementById("back-btn");
+const nextButton = document.getElementById("next-btn");
 
 const questionNumber = document.getElementById("question-number");
 const questionText = document.getElementById("question");
@@ -274,26 +285,44 @@ const answersContainer = document.getElementById("answers");
 const progressBar = document.getElementById("progress-bar");
 
 
+// ===============================
+// BUTTON EVENTS
+// ===============================
+
 startButton.addEventListener("click", startQuiz);
 restartButton.addEventListener("click", restartQuiz);
 shareButton.addEventListener("click", shareResult);
 challengeButton.addEventListener("click", shareResult);
 
+backButton.addEventListener("click", goBack);
+nextButton.addEventListener("click", goNext);
+
+
+// ===============================
+// START QUIZ
+// ===============================
 
 function startQuiz() {
 
-    homeInfo.classList.add("hidden");
-
     currentQuestion = 0;
-    score = 0;
+
+    // Reset all answers
+    selectedAnswers =
+        new Array(questions.length).fill(null);
 
     startScreen.classList.add("hidden");
     resultScreen.classList.add("hidden");
     quizScreen.classList.remove("hidden");
 
+    homeInfo.classList.add("hidden");
+
     showQuestion();
 }
 
+
+// ===============================
+// SHOW QUESTION
+// ===============================
 
 function showQuestion() {
 
@@ -302,53 +331,304 @@ function showQuestion() {
     questionNumber.textContent =
         `Question ${currentQuestion + 1} of ${questions.length}`;
 
-    questionText.textContent = current.question;
+    questionText.textContent =
+        current.question;
 
     answersContainer.innerHTML = "";
 
+
+    // Progress
     const progress =
         ((currentQuestion + 1) / questions.length) * 100;
 
-    progressBar.style.width = `${progress}%`;
+    progressBar.style.width =
+        `${progress}%`;
 
 
-    current.answers.forEach((answer) => {
+    // Create answer buttons
+    current.answers.forEach((answer, index) => {
 
-        const button = document.createElement("button");
+        const button =
+            document.createElement("button");
 
         button.className = "answer";
 
-        button.textContent = answer[0];
+        button.type = "button";
+
+        button.textContent =
+            answer[0];
+
+
+        // Restore selected answer
+        if (
+            selectedAnswers[currentQuestion] === index
+        ) {
+
+            button.classList.add("selected");
+
+        }
+
 
         button.addEventListener("click", () => {
-            selectAnswer(answer[1]);
+
+            selectAnswer(index);
+
         });
+
 
         answersContainer.appendChild(button);
 
     });
+
+
+    updateNavigation();
 }
 
 
-function selectAnswer(points) {
+// ===============================
+// SELECT ANSWER
+// ===============================
 
-    score += points;
+function selectAnswer(answerIndex) {
 
-    currentQuestion++;
+    // Save selected answer
+    selectedAnswers[currentQuestion] =
+        answerIndex;
 
-    if (currentQuestion < questions.length) {
 
-        showQuestion();
+    // Highlight selected answer
+    const buttons =
+        answersContainer.querySelectorAll(".answer");
 
-    } else {
 
-        showResult();
+    buttons.forEach((button, index) => {
+
+        if (index === answerIndex) {
+
+            button.classList.add("selected");
+
+        } else {
+
+            button.classList.remove("selected");
+
+        }
+
+    });
+
+
+    updateNavigation();
+
+
+    // Automatic advancement
+    if (
+        currentQuestion <
+        questions.length - 1
+    ) {
+
+        const questionAtSelection =
+            currentQuestion;
+
+
+        setTimeout(() => {
+
+            // Only advance if user is
+            // still on the same question
+            if (
+                currentQuestion ===
+                    questionAtSelection &&
+
+                selectedAnswers[
+                    questionAtSelection
+                ] === answerIndex
+            ) {
+
+                currentQuestion++;
+
+                showQuestion();
+
+            }
+
+        }, 150);
 
     }
 }
 
 
+// ===============================
+// NEXT BUTTON
+// ===============================
+
+function goNext() {
+
+    // Final question = submit
+    if (
+        currentQuestion ===
+        questions.length - 1
+    ) {
+
+        const allAnswered =
+            selectedAnswers.every(
+                answer => answer !== null
+            );
+
+
+        if (allAnswered) {
+
+            showResult();
+
+        }
+
+        return;
+    }
+
+
+    // Don't allow unanswered question
+    if (
+        selectedAnswers[currentQuestion] === null
+    ) {
+
+        return;
+
+    }
+
+
+    currentQuestion++;
+
+    showQuestion();
+}
+
+
+// ===============================
+// BACK BUTTON
+// ===============================
+
+function goBack() {
+
+    if (currentQuestion > 0) {
+
+        currentQuestion--;
+
+        showQuestion();
+
+    }
+}
+
+
+// ===============================
+// NAVIGATION
+// ===============================
+
+function updateNavigation() {
+
+    const isFirst =
+        currentQuestion === 0;
+
+    const isLast =
+        currentQuestion ===
+        questions.length - 1;
+
+
+    const currentAnswered =
+        selectedAnswers[currentQuestion] !== null;
+
+
+    const allAnswered =
+        selectedAnswers.every(
+            answer => answer !== null
+        );
+
+
+    // BACK
+    backButton.disabled =
+        isFirst;
+
+
+    // FINAL QUESTION
+    if (isLast) {
+
+        nextButton.textContent =
+            "SUBMIT";
+
+
+        nextButton.disabled =
+            !allAnswered;
+
+
+        if (allAnswered) {
+
+            nextButton.classList.add(
+                "submit-ready"
+            );
+
+        } else {
+
+            nextButton.classList.remove(
+                "submit-ready"
+            );
+
+        }
+
+    } else {
+
+        nextButton.textContent =
+            "Next →";
+
+
+        nextButton.disabled =
+            !currentAnswered;
+
+
+        nextButton.classList.remove(
+            "submit-ready"
+        );
+
+    }
+}
+
+
+// ===============================
+// CALCULATE SCORE
+// ===============================
+
+function calculateScore() {
+
+    let score = 0;
+
+
+    selectedAnswers.forEach(
+        (answerIndex, questionIndex) => {
+
+            if (answerIndex === null) {
+
+                return;
+
+            }
+
+
+            score +=
+                questions[
+                    questionIndex
+                ].answers[
+                    answerIndex
+                ][1];
+
+        }
+    );
+
+
+    return score;
+}
+
+
+// ===============================
+// SHOW RESULT
+// ===============================
+
 function showResult() {
+
+    const score =
+        calculateScore();
+
 
     homeInfo.classList.remove("hidden");
 
@@ -356,7 +636,10 @@ function showResult() {
 
     resultScreen.classList.remove("hidden");
 
-    document.getElementById("final-score").textContent = score;
+
+    document.getElementById(
+        "final-score"
+    ).textContent = score;
 
 
     let title;
@@ -367,108 +650,180 @@ function showResult() {
 
     if (score <= 10) {
 
-        title = "🧟 Zombie-Level Knowledge";
+        title =
+            "🧟 Zombie-Level Knowledge";
 
         description =
             "The T-virus has definitely infected your memory. You may need another trip through the Resident Evil movies.";
 
-        knowledge = "Casual Viewer";
+        knowledge =
+            "Casual Viewer";
 
-        icon = "🧟";
+        icon =
+            "🧟";
+
 
     } else if (score <= 20) {
 
-        title = "🏚️ Raccoon City Survivor";
+        title =
+            "🏚️ Raccoon City Survivor";
 
         description =
             "You've seen the movies and remember the major events, but plenty of Umbrella secrets still escaped you.";
 
-        knowledge = "Casual Fan";
+        knowledge =
+            "Casual Fan";
 
-        icon = "🏚️";
+        icon =
+            "🏚️";
+
 
     } else if (score <= 30) {
 
-        title = "🔥 Umbrella Survivor";
+        title =
+            "🔥 Umbrella Survivor";
 
         description =
             "You know Alice, Umbrella and the major events of the series, but some of the deeper movie trivia caught you out.";
 
-        knowledge = "Good Fan";
+        knowledge =
+            "Good Fan";
 
-        icon = "🔥";
+        icon =
+            "🔥";
+
 
     } else if (score <= 40) {
 
-        title = "⚔️ Biohazard Expert";
+        title =
+            "⚔️ Biohazard Expert";
 
         description =
             "Impressive. You remember a lot of characters, creatures, locations and obscure details from the Resident Evil movies.";
 
-        knowledge = "Dedicated Fan";
+        knowledge =
+            "Dedicated Fan";
 
-        icon = "⚔️";
+        icon =
+            "⚔️";
+
 
     } else if (score <= 48) {
 
-        title = "👑 Umbrella Elite";
+        title =
+            "👑 Umbrella Elite";
 
         description =
             "Excellent knowledge. You remember details that many Resident Evil fans would have forgotten.";
 
-        knowledge = "Expert Fan";
+        knowledge =
+            "Expert Fan";
 
-        icon = "👑";
+        icon =
+            "👑";
+
 
     } else {
 
-        title = "🧠 Resident Evil Encyclopedia";
+        title =
+            "🧠 Resident Evil Encyclopedia";
 
         description =
             "You don't just remember the movies — you remember the tiny details. Even Umbrella would have trouble hiding anything from you.";
 
-        knowledge = "Ultimate Fan";
+        knowledge =
+            "Ultimate Fan";
 
-        icon = "🧠";
+        icon =
+            "🧠";
     }
 
 
-    document.getElementById("result-title").textContent = title;
+    document.getElementById(
+        "result-title"
+    ).textContent = title;
 
-    document.getElementById("result-description").textContent =
-        description;
 
-    document.getElementById("knowledge-level").textContent =
-        knowledge;
+    document.getElementById(
+        "result-description"
+    ).textContent = description;
 
-    document.getElementById("result-icon").textContent =
-        icon;
 
-    progressBar.style.width = "100%";
+    document.getElementById(
+        "knowledge-level"
+    ).textContent = knowledge;
+
+
+    document.getElementById(
+        "result-icon"
+    ).textContent = icon;
+
+
+    progressBar.style.width =
+        "100%";
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
 }
 
 
+// ===============================
+// RESTART QUIZ
+// ===============================
+
 function restartQuiz() {
 
+    currentQuestion = 0;
+
+    selectedAnswers =
+        new Array(questions.length).fill(null);
+
+
     resultScreen.classList.add("hidden");
+
+    quizScreen.classList.add("hidden");
 
     startScreen.classList.remove("hidden");
 
     homeInfo.classList.remove("hidden");
 
+
+    progressBar.style.width =
+        "0%";
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
 }
 
+
+// ===============================
+// SHARE RESULT
+// ===============================
 
 async function shareResult() {
 
     const title =
-        document.getElementById("result-title").textContent;
+        document.getElementById(
+            "result-title"
+        ).textContent;
+
 
     const knowledge =
-        document.getElementById("knowledge-level").textContent;
+        document.getElementById(
+            "knowledge-level"
+        ).textContent;
+
 
     const finalScore =
-        document.getElementById("final-score").textContent;
+        document.getElementById(
+            "final-score"
+        ).textContent;
 
 
     const shareText =
@@ -480,11 +835,14 @@ async function shareResult() {
 
     const shareData = {
 
-        title: "Resident Evil Movie Quiz",
+        title:
+            "Resident Evil Movie Quiz",
 
-        text: shareText,
+        text:
+            shareText,
 
-        url: "https://apocalypsequizzes.com/resident-evil-quiz/"
+        url:
+            "https://apocalypsequizzes.com/resident-evil-quiz/"
 
     };
 
@@ -493,7 +851,9 @@ async function shareResult() {
 
         if (navigator.share) {
 
-            await navigator.share(shareData);
+            await navigator.share(
+                shareData
+            );
 
         } else {
 
@@ -501,6 +861,7 @@ async function shareResult() {
                 shareText +
                 "\n\nhttps://apocalypsequizzes.com/resident-evil-quiz/"
             );
+
 
             alert(
                 "Your result has been copied! You can paste it anywhere."
@@ -510,8 +871,9 @@ async function shareResult() {
 
     } catch (error) {
 
-        console.log("Sharing cancelled.");
+        console.log(
+            "Sharing cancelled."
+        );
 
     }
-
 }
