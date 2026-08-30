@@ -318,10 +318,6 @@ function startQuiz() {
 }
 
 
-// ===============================
-// SHOW QUESTION
-// ===============================
-
 function showQuestion() {
 
     const current = questions[currentQuestion];
@@ -334,8 +330,6 @@ function showQuestion() {
 
     answersContainer.innerHTML = "";
 
-
-    // Progress
     const progress =
         ((currentQuestion + 1) / questions.length) * 100;
 
@@ -343,21 +337,18 @@ function showQuestion() {
         `${progress}%`;
 
 
-    // Create answer buttons
     current.answers.forEach((answer, index) => {
 
-        const button =
-            document.createElement("button");
-
-        button.className = "answer";
+        const button = document.createElement("button");
 
         button.type = "button";
 
-        button.textContent =
-            answer[0];
+        button.className = "answer";
+
+        button.textContent = answer[0];
 
 
-        // Restore selected answer
+        // Restore previous selection
         if (
             selectedAnswers[currentQuestion] === index
         ) {
@@ -367,7 +358,7 @@ function showQuestion() {
         }
 
 
-        button.addEventListener("click", () => {
+        button.addEventListener("click", function () {
 
             selectAnswer(index);
 
@@ -389,27 +380,22 @@ function showQuestion() {
 
 function selectAnswer(answerIndex) {
 
-    // Save selected answer
+    // Save answer
     selectedAnswers[currentQuestion] =
         answerIndex;
 
 
-    // Highlight selected answer
+    // Highlight selected answer immediately
     const buttons =
         answersContainer.querySelectorAll(".answer");
 
 
     buttons.forEach((button, index) => {
 
-        if (index === answerIndex) {
-
-            button.classList.add("selected");
-
-        } else {
-
-            button.classList.remove("selected");
-
-        }
+        button.classList.toggle(
+            "selected",
+            index === answerIndex
+        );
 
     });
 
@@ -417,27 +403,23 @@ function selectAnswer(answerIndex) {
     updateNavigation();
 
 
-    // Automatic advancement
+    // Automatically move to next question
     if (
         currentQuestion <
         questions.length - 1
     ) {
 
-        const questionAtSelection =
+        const selectedQuestion =
             currentQuestion;
 
 
-        setTimeout(() => {
+        setTimeout(function () {
 
-            // Only advance if user is
-            // still on the same question
+            // Make sure user hasn't moved back
+            // during the delay
             if (
                 currentQuestion ===
-                    questionAtSelection &&
-
-                selectedAnswers[
-                    questionAtSelection
-                ] === answerIndex
+                selectedQuestion
             ) {
 
                 currentQuestion++;
@@ -446,44 +428,36 @@ function selectAnswer(answerIndex) {
 
             }
 
-        }, 150);
+        }, 300);
 
     }
 }
 
 
 // ===============================
-// NEXT BUTTON
+// NEXT
 // ===============================
 
 function goNext() {
 
-    // Final question = submit
+    // If current question isn't answered,
+    // do nothing
+    if (
+        selectedAnswers[currentQuestion] === null
+    ) {
+
+        return;
+
+    }
+
+
+    // Last question
     if (
         currentQuestion ===
         questions.length - 1
     ) {
 
-        const allAnswered =
-            selectedAnswers.every(
-                answer => answer !== null
-            );
-
-
-        if (allAnswered) {
-
-            showResult();
-
-        }
-
-        return;
-    }
-
-
-    // Don't allow unanswered question
-    if (
-        selectedAnswers[currentQuestion] === null
-    ) {
+        showResult();
 
         return;
 
@@ -497,18 +471,21 @@ function goNext() {
 
 
 // ===============================
-// BACK BUTTON
+// BACK
 // ===============================
 
 function goBack() {
 
-    if (currentQuestion > 0) {
+    if (currentQuestion <= 0) {
 
-        currentQuestion--;
-
-        showQuestion();
+        return;
 
     }
+
+
+    currentQuestion--;
+
+    showQuestion();
 }
 
 
@@ -526,26 +503,28 @@ function updateNavigation() {
         questions.length - 1;
 
 
-    const currentAnswered =
+    const answered =
         selectedAnswers[currentQuestion] !== null;
 
 
-    const allAnswered =
-        selectedAnswers.every(
-            answer => answer !== null
-        );
-
-
-    // BACK
+    // Back button
     backButton.disabled =
         isFirst;
 
 
-    // FINAL QUESTION
+    // Last question
     if (isLast) {
 
         nextButton.textContent =
             "SUBMIT";
+
+
+        // Enable submit only when
+        // every question is answered
+        const allAnswered =
+            selectedAnswers.every(
+                answer => answer !== null
+            );
 
 
         nextButton.disabled =
@@ -566,14 +545,17 @@ function updateNavigation() {
 
         }
 
-    } else {
+    }
+
+    // Normal questions
+    else {
 
         nextButton.textContent =
             "Next →";
 
 
         nextButton.disabled =
-            !currentAnswered;
+            !answered;
 
 
         nextButton.classList.remove(
@@ -582,7 +564,6 @@ function updateNavigation() {
 
     }
 }
-
 
 // ===============================
 // CALCULATE SCORE
