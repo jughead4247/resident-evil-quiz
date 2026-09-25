@@ -253,173 +253,267 @@ const questions = [
 ];
 
 
+// =====================================================
+// QUIZ STATE
+// =====================================================
+
 let currentQuestion = 0;
 
-// Stores the selected answer index for every question.
-// null = unanswered
-let selectedAnswers = new Array(questions.length).fill(null);
+let selectedAnswers =
+    new Array(questions.length).fill(null);
 
 
-// ===============================
+// =====================================================
 // ELEMENTS
-// ===============================
+// =====================================================
 
-const startScreen = document.getElementById("start-screen");
-const quizScreen = document.getElementById("quiz-screen");
-const resultScreen = document.getElementById("result-screen");
-const homeInfo = document.getElementById("home-info");
+const startScreen =
+    document.getElementById("start-screen");
 
-const startButton = document.getElementById("start-btn");
-const restartButton = document.getElementById("restart-btn");
-const shareButton = document.getElementById("share-btn");
-const challengeButton = document.getElementById("challenge-btn");
+const quizScreen =
+    document.getElementById("quiz-screen");
 
-const backButton = document.getElementById("back-btn");
-const nextButton = document.getElementById("next-btn");
+const resultScreen =
+    document.getElementById("result-screen");
 
-const questionNumber = document.getElementById("question-number");
-const questionText = document.getElementById("question");
-const answersContainer = document.getElementById("answers");
-const progressBar = document.getElementById("progress-bar");
+const homeInfo =
+    document.getElementById("home-info");
+
+const suggestionsCard =
+    document.getElementById("suggestions-card");
 
 
-// ===============================
+const startButton =
+    document.getElementById("start-btn");
+
+const restartButton =
+    document.getElementById("restart-btn");
+
+const shareButton =
+    document.getElementById("share-btn");
+
+const challengeButton =
+    document.getElementById("challenge-btn");
+
+
+const backButton =
+    document.getElementById("back-btn");
+
+const nextButton =
+    document.getElementById("next-btn");
+
+const submitButton =
+    document.getElementById("submit-btn");
+
+
+const questionNumber =
+    document.getElementById("question-number");
+
+const questionText =
+    document.getElementById("question");
+
+const answersContainer =
+    document.getElementById("answers");
+
+const progressBar =
+    document.getElementById("progress-bar");
+
+
+// =====================================================
 // BUTTON EVENTS
-// ===============================
+// =====================================================
 
-startButton.addEventListener("click", startQuiz);
-restartButton.addEventListener("click", restartQuiz);
-shareButton.addEventListener("click", shareResult);
-challengeButton.addEventListener("click", shareResult);
+startButton.addEventListener(
+    "click",
+    startQuiz
+);
 
-backButton.addEventListener("click", goBack);
-nextButton.addEventListener("click", goNext);
+restartButton.addEventListener(
+    "click",
+    restartQuiz
+);
+
+shareButton.addEventListener(
+    "click",
+    shareResult
+);
+
+challengeButton.addEventListener(
+    "click",
+    shareResult
+);
+
+backButton.addEventListener(
+    "click",
+    goBack
+);
+
+nextButton.addEventListener(
+    "click",
+    goNext
+);
+
+submitButton.addEventListener(
+    "click",
+    showResult
+);
 
 
-// ===============================
+// =====================================================
 // START QUIZ
-// ===============================
+// =====================================================
 
 function startQuiz() {
 
     currentQuestion = 0;
 
-    // Reset all answers
     selectedAnswers =
         new Array(questions.length).fill(null);
 
+
     startScreen.classList.add("hidden");
+
     resultScreen.classList.add("hidden");
+
     quizScreen.classList.remove("hidden");
 
     homeInfo.classList.add("hidden");
 
+    suggestionsCard.classList.add("hidden");
+
+
+    progressBar.style.width = "0%";
+
+
     showQuestion();
+
 }
 
 
+// =====================================================
+// SHOW QUESTION
+// =====================================================
+
 function showQuestion() {
 
-    const current = questions[currentQuestion];
+    const current =
+        questions[currentQuestion];
+
 
     questionNumber.textContent =
         `Question ${currentQuestion + 1} of ${questions.length}`;
 
+
     questionText.textContent =
         current.question;
 
+
     answersContainer.innerHTML = "";
+
 
     const progress =
         ((currentQuestion + 1) / questions.length) * 100;
+
 
     progressBar.style.width =
         `${progress}%`;
 
 
-    current.answers.forEach((answer, index) => {
+    current.answers.forEach(
+        (answer, index) => {
 
-        const button = document.createElement("button");
-
-        button.type = "button";
-
-        button.className = "answer";
-
-        button.textContent = answer[0];
+            const button =
+                document.createElement("button");
 
 
-        // Restore previous selection
-        if (
-            selectedAnswers[currentQuestion] === index
-        ) {
+            button.className =
+                "answer";
 
-            button.classList.add("selected");
+
+            button.type =
+                "button";
+
+
+            button.textContent =
+                answer[0];
+
+
+            if (
+                selectedAnswers[currentQuestion] === index
+            ) {
+
+                button.classList.add(
+                    "selected"
+                );
+
+            }
+
+
+            button.addEventListener(
+                "click",
+                function () {
+
+                    selectAnswer(index);
+
+                }
+            );
+
+
+            answersContainer.appendChild(
+                button
+            );
 
         }
-
-
-        button.addEventListener("click", function () {
-
-            selectAnswer(index);
-
-        });
-
-
-        answersContainer.appendChild(button);
-
-    });
+    );
 
 
     updateNavigation();
+
 }
 
 
-// ===============================
+// =====================================================
 // SELECT ANSWER
-// ===============================
+// =====================================================
 
 function selectAnswer(answerIndex) {
 
-    // Save answer
     selectedAnswers[currentQuestion] =
         answerIndex;
 
 
-    // Highlight selected answer immediately
     const buttons =
-        answersContainer.querySelectorAll(".answer");
-
-
-    buttons.forEach((button, index) => {
-
-        button.classList.toggle(
-            "selected",
-            index === answerIndex
+        answersContainer.querySelectorAll(
+            ".answer"
         );
 
-    });
+
+    buttons.forEach(
+        (button, index) => {
+
+            button.classList.toggle(
+                "selected",
+                index === answerIndex
+            );
+
+        }
+    );
 
 
     updateNavigation();
 
 
-    // Automatically move to next question
-    if (
-        currentQuestion <
-        questions.length - 1
-    ) {
-
-        const selectedQuestion =
-            currentQuestion;
+    const selectedQuestion =
+        currentQuestion;
 
 
-        setTimeout(function () {
+    setTimeout(
+        function () {
 
-            // Make sure user hasn't moved back
-            // during the delay
             if (
-                currentQuestion ===
-                selectedQuestion
+                currentQuestion === selectedQuestion &&
+                selectedAnswers[selectedQuestion] === answerIndex &&
+                currentQuestion < questions.length - 1
             ) {
 
                 currentQuestion++;
@@ -428,20 +522,19 @@ function selectAnswer(answerIndex) {
 
             }
 
-        }, 300);
+        },
+        300
+    );
 
-    }
 }
 
 
-// ===============================
+// =====================================================
 // NEXT
-// ===============================
+// =====================================================
 
 function goNext() {
 
-    // If current question isn't answered,
-    // do nothing
     if (
         selectedAnswers[currentQuestion] === null
     ) {
@@ -451,13 +544,20 @@ function goNext() {
     }
 
 
-    // Last question
     if (
         currentQuestion ===
         questions.length - 1
     ) {
 
-        showResult();
+        if (
+            selectedAnswers.every(
+                answer => answer !== null
+            )
+        ) {
+
+            showResult();
+
+        }
 
         return;
 
@@ -467,16 +567,19 @@ function goNext() {
     currentQuestion++;
 
     showQuestion();
+
 }
 
 
-// ===============================
+// =====================================================
 // BACK
-// ===============================
+// =====================================================
 
 function goBack() {
 
-    if (currentQuestion <= 0) {
+    if (
+        currentQuestion <= 0
+    ) {
 
         return;
 
@@ -486,217 +589,312 @@ function goBack() {
     currentQuestion--;
 
     showQuestion();
+
 }
 
 
-// ===============================
+// =====================================================
 // NAVIGATION
-// ===============================
+// =====================================================
 
 function updateNavigation() {
 
     const isFirst =
         currentQuestion === 0;
 
+
     const isLast =
         currentQuestion ===
         questions.length - 1;
 
 
-    const answered =
+    const currentAnswered =
         selectedAnswers[currentQuestion] !== null;
 
 
-    // Back button
+    const allAnswered =
+        selectedAnswers.every(
+            answer => answer !== null
+        );
+
+
     backButton.disabled =
         isFirst;
 
 
-    // Last question
     if (isLast) {
 
-        nextButton.textContent =
-            "SUBMIT";
+        nextButton.classList.add(
+            "hidden"
+        );
+
+        submitButton.classList.remove(
+            "hidden"
+        );
 
 
-        // Enable submit only when
-        // every question is answered
-        const allAnswered =
-            selectedAnswers.every(
-                answer => answer !== null
-            );
-
-
-        nextButton.disabled =
+        submitButton.disabled =
             !allAnswered;
 
 
-        if (allAnswered) {
+        submitButton.textContent =
+            allAnswered
+                ? "SUBMIT"
+                : "Answer All Questions";
 
-            nextButton.classList.add(
-                "submit-ready"
-            );
+    } else {
 
-        } else {
+        nextButton.classList.remove(
+            "hidden"
+        );
 
-            nextButton.classList.remove(
-                "submit-ready"
-            );
+        submitButton.classList.add(
+            "hidden"
+        );
 
-        }
-
-    }
-
-    // Normal questions
-    else {
 
         nextButton.textContent =
             "Next →";
 
 
         nextButton.disabled =
-            !answered;
-
-
-        nextButton.classList.remove(
-            "submit-ready"
-        );
+            !currentAnswered;
 
     }
+
 }
 
-// ===============================
+
+// =====================================================
 // CALCULATE SCORE
-// ===============================
+// =====================================================
 
 function calculateScore() {
 
-    let score = 0;
+    let points = 0;
+
+    let correctAnswers = 0;
 
 
     selectedAnswers.forEach(
         (answerIndex, questionIndex) => {
 
-            if (answerIndex === null) {
+            if (
+                answerIndex === null
+            ) {
 
                 return;
 
             }
 
 
-            score +=
-                questions[
-                    questionIndex
-                ].answers[
-                    answerIndex
-                ][1];
+            const answer =
+                questions[questionIndex]
+                    .answers[answerIndex];
+
+
+            if (
+                answer[1] === 2
+            ) {
+
+                correctAnswers++;
+
+                points += 2;
+
+            }
 
         }
     );
 
 
-    return score;
+    return {
+        points,
+        correctAnswers
+    };
+
 }
 
 
-// ===============================
+// =====================================================
 // SHOW RESULT
-// ===============================
+// =====================================================
 
 function showResult() {
 
-    const score =
+    const scoreData =
         calculateScore();
 
 
-    homeInfo.classList.remove("hidden");
+    const points =
+        scoreData.points;
 
-    quizScreen.classList.add("hidden");
 
-    resultScreen.classList.remove("hidden");
+    const correctAnswers =
+        scoreData.correctAnswers;
+
+
+    const totalQuestions =
+        questions.length;
+
+
+    const incorrectAnswers =
+        totalQuestions - correctAnswers;
+
+
+    const accuracy =
+        Math.round(
+            (correctAnswers / totalQuestions) * 100
+        );
+
+
+    quizScreen.classList.add(
+        "hidden"
+    );
+
+
+    resultScreen.classList.remove(
+        "hidden"
+    );
+
+
+    homeInfo.classList.remove(
+        "hidden"
+    );
+
+
+    suggestionsCard.classList.remove(
+        "hidden"
+    );
 
 
     document.getElementById(
         "final-score"
-    ).textContent = score;
+    ).textContent =
+        `${points}/50`;
+
+
+    document.getElementById(
+        "correct-count"
+    ).textContent =
+        correctAnswers;
+
+
+    document.getElementById(
+        "incorrect-count"
+    ).textContent =
+        incorrectAnswers;
+
+
+    document.getElementById(
+        "total-count"
+    ).textContent =
+        totalQuestions;
+
+
+    document.getElementById(
+        "accuracy-percent"
+    ).textContent =
+        `${accuracy}%`;
 
 
     let title;
+
     let description;
+
     let knowledge;
+
     let icon;
 
 
-    if (score <= 10) {
+    // =================================================
+    // RESULT LEVELS
+    // =================================================
+
+    if (points <= 10) {
 
         title =
             "🧟 Zombie-Level Knowledge";
 
+
         description =
             "The T-virus has definitely infected your memory. You may need another trip through the Resident Evil movies.";
 
+
         knowledge =
             "Casual Viewer";
+
 
         icon =
             "🧟";
 
 
-    } else if (score <= 20) {
+    } else if (points <= 20) {
 
         title =
             "🏚️ Raccoon City Survivor";
 
+
         description =
             "You've seen the movies and remember the major events, but plenty of Umbrella secrets still escaped you.";
 
+
         knowledge =
             "Casual Fan";
+
 
         icon =
             "🏚️";
 
 
-    } else if (score <= 30) {
+    } else if (points <= 30) {
 
         title =
             "🔥 Umbrella Survivor";
 
+
         description =
             "You know Alice, Umbrella and the major events of the series, but some of the deeper movie trivia caught you out.";
 
+
         knowledge =
             "Good Fan";
+
 
         icon =
             "🔥";
 
 
-    } else if (score <= 40) {
+    } else if (points <= 40) {
 
         title =
             "⚔️ Biohazard Expert";
 
+
         description =
             "Impressive. You remember a lot of characters, creatures, locations and obscure details from the Resident Evil movies.";
 
+
         knowledge =
             "Dedicated Fan";
+
 
         icon =
             "⚔️";
 
 
-    } else if (score <= 48) {
+    } else if (points <= 48) {
 
         title =
             "👑 Umbrella Elite";
 
+
         description =
             "Excellent knowledge. You remember details that many Resident Evil fans would have forgotten.";
 
+
         knowledge =
             "Expert Fan";
+
 
         icon =
             "👑";
@@ -707,35 +905,43 @@ function showResult() {
         title =
             "🧠 Resident Evil Encyclopedia";
 
+
         description =
             "You don't just remember the movies — you remember the tiny details. Even Umbrella would have trouble hiding anything from you.";
+
 
         knowledge =
             "Ultimate Fan";
 
+
         icon =
             "🧠";
+
     }
 
 
     document.getElementById(
         "result-title"
-    ).textContent = title;
+    ).textContent =
+        title;
 
 
     document.getElementById(
         "result-description"
-    ).textContent = description;
+    ).textContent =
+        description;
 
 
     document.getElementById(
         "knowledge-level"
-    ).textContent = knowledge;
+    ).textContent =
+        knowledge;
 
 
     document.getElementById(
         "result-icon"
-    ).textContent = icon;
+    ).textContent =
+        icon;
 
 
     progressBar.style.width =
@@ -746,28 +952,46 @@ function showResult() {
         top: 0,
         behavior: "smooth"
     });
+
 }
 
 
-// ===============================
+// =====================================================
 // RESTART QUIZ
-// ===============================
+// =====================================================
 
 function restartQuiz() {
 
     currentQuestion = 0;
 
+
     selectedAnswers =
         new Array(questions.length).fill(null);
 
 
-    resultScreen.classList.add("hidden");
+    resultScreen.classList.add(
+        "hidden"
+    );
 
-    quizScreen.classList.add("hidden");
 
-    startScreen.classList.remove("hidden");
+    quizScreen.classList.add(
+        "hidden"
+    );
 
-    homeInfo.classList.remove("hidden");
+
+    startScreen.classList.remove(
+        "hidden"
+    );
+
+
+    homeInfo.classList.remove(
+        "hidden"
+    );
+
+
+    suggestionsCard.classList.add(
+        "hidden"
+    );
 
 
     progressBar.style.width =
@@ -778,12 +1002,13 @@ function restartQuiz() {
         top: 0,
         behavior: "smooth"
     });
+
 }
 
 
-// ===============================
+// =====================================================
 // SHARE RESULT
-// ===============================
+// =====================================================
 
 async function shareResult() {
 
@@ -805,8 +1030,12 @@ async function shareResult() {
         ).textContent;
 
 
+    const quizUrl =
+        "https://apocalypsequizzes.com/resident-evil-quiz/";
+
+
     const shareText =
-        `🧟 I scored ${finalScore}/50 on the Resident Evil Movie Quiz!\n\n` +
+        `🧟 I scored ${finalScore} on the Resident Evil Movie Quiz!\n\n` +
         `${title}\n` +
         `Knowledge level: ${knowledge}\n\n` +
         `How well do YOU know the Resident Evil movies?`;
@@ -821,14 +1050,16 @@ async function shareResult() {
             shareText,
 
         url:
-            "https://apocalypsequizzes.com/resident-evil-quiz/"
+            quizUrl
 
     };
 
 
     try {
 
-        if (navigator.share) {
+        if (
+            navigator.share
+        ) {
 
             await navigator.share(
                 shareData
@@ -838,7 +1069,8 @@ async function shareResult() {
 
             await navigator.clipboard.writeText(
                 shareText +
-                "\n\nhttps://apocalypsequizzes.com/resident-evil-quiz/"
+                "\n\n" +
+                quizUrl
             );
 
 
@@ -855,87 +1087,137 @@ async function shareResult() {
         );
 
     }
+
 }
 
-// ===============================
+
+// =====================================================
 // GLOBAL SITE MENU
-// ===============================
+// =====================================================
 
-const menuToggle = document.getElementById("menu-toggle");
-const siteMenu = document.getElementById("site-menu");
+const menuToggle =
+    document.getElementById(
+        "menu-toggle"
+    );
 
-if (menuToggle && siteMenu) {
 
+const siteMenu =
+    document.getElementById(
+        "site-menu"
+    );
+
+
+if (
+    menuToggle &&
+    siteMenu
+) {
+
+
+    // =================================================
     // OPEN / CLOSE WITH HAMBURGER
-    menuToggle.addEventListener("click", function (event) {
+    // =================================================
 
-        event.stopPropagation();
+    menuToggle.addEventListener(
+        "click",
+        function (event) {
 
-        const isOpen =
-            menuToggle.getAttribute("aria-expanded") === "true";
-
-        siteMenu.hidden = isOpen;
-
-        menuToggle.setAttribute(
-            "aria-expanded",
-            String(!isOpen)
-        );
-
-        menuToggle.setAttribute(
-            "aria-label",
-            isOpen
-                ? "Open navigation"
-                : "Close navigation"
-        );
-
-    });
+            event.stopPropagation();
 
 
-    // CLOSE WHEN CLICKING OUTSIDE
-    document.addEventListener("click", function (event) {
+            const isOpen =
+                menuToggle.getAttribute(
+                    "aria-expanded"
+                ) === "true";
 
-        if (
-            !siteMenu.hidden &&
-            !siteMenu.contains(event.target) &&
-            !menuToggle.contains(event.target)
-        ) {
 
-            siteMenu.hidden = true;
+            siteMenu.hidden =
+                isOpen;
+
 
             menuToggle.setAttribute(
                 "aria-expanded",
-                "false"
+                String(!isOpen)
             );
+
 
             menuToggle.setAttribute(
                 "aria-label",
-                "Open navigation"
+                isOpen
+                    ? "Open navigation"
+                    : "Close navigation"
             );
 
         }
+    );
 
-    });
+
+    // =================================================
+    // CLOSE WHEN CLICKING OUTSIDE
+    // =================================================
+
+    document.addEventListener(
+        "click",
+        function (event) {
+
+            if (
+                !siteMenu.hidden &&
+                !siteMenu.contains(event.target) &&
+                !menuToggle.contains(event.target)
+            ) {
+
+                siteMenu.hidden =
+                    true;
 
 
+                menuToggle.setAttribute(
+                    "aria-expanded",
+                    "false"
+                );
+
+
+                menuToggle.setAttribute(
+                    "aria-label",
+                    "Open navigation"
+                );
+
+            }
+
+        }
+    );
+
+
+    // =================================================
     // CLOSE AFTER CLICKING A MENU LINK
-    siteMenu.querySelectorAll("a").forEach(function (link) {
+    // =================================================
 
-        link.addEventListener("click", function () {
+    siteMenu
+        .querySelectorAll("a")
+        .forEach(
+            function (link) {
 
-            siteMenu.hidden = true;
+                link.addEventListener(
+                    "click",
+                    function () {
 
-            menuToggle.setAttribute(
-                "aria-expanded",
-                "false"
-            );
+                        siteMenu.hidden =
+                            true;
 
-            menuToggle.setAttribute(
-                "aria-label",
-                "Open navigation"
-            );
 
-        });
+                        menuToggle.setAttribute(
+                            "aria-expanded",
+                            "false"
+                        );
 
-    });
+
+                        menuToggle.setAttribute(
+                            "aria-label",
+                            "Open navigation"
+                        );
+
+                    }
+                );
+
+            }
+        );
 
 }
